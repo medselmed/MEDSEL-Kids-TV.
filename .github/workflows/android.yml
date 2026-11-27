@@ -22,7 +22,7 @@ jobs:
         run: |
           echo "ANDROID_HOME=$ANDROID_HOME"
           yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses >/dev/null || true
-          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --install "platform-tools" "platforms;android-29" "build-tools;29.0.3"
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --install "platform-tools" "platforms;android-31" "build-tools;30.0.3"
 
       - name: Set up JDK 8 for legacy Android Gradle Plugin
         uses: actions/setup-java@v4
