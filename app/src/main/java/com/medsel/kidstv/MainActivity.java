@@ -48,7 +48,12 @@ public class MainActivity extends Activity {
     private static class Channel {
         final String name;
         final String note;
-        Channel(String name, String note) { this.name = name; this.note = note; }
+        final String liveUrl;
+        Channel(String name, String note, String liveUrl) {
+            this.name = name;
+            this.note = note;
+            this.liveUrl = liveUrl;
+        }
         @Override public String toString() { return name; }
     }
 
@@ -62,19 +67,17 @@ public class MainActivity extends Activity {
     }
 
     private void buildCatalog() {
-        channels.add(new Channel("Spacetoon | سبيستون", "Direct officiel non confirmé sur Android 4.4"));
-        channels.add(new Channel("MBC 3 | إم بي سي 3", "Direct officiel proposé par Shahid ; accès/DRM à confirmer"));
-        channels.add(new Channel("Majid | ماجد", "Accès officiel via plateforme du diffuseur ; direct gratuit non confirmé"));
-        channels.add(new Channel("Al Majd Kids | المجد للأطفال", "Aucun flux officiel gratuit compatible vérifié"));
-        channels.add(new Channel("Baraem | براعم", "Aucun flux officiel gratuit compatible vérifié"));
-        channels.add(new Channel("Jeem | جيم", "Aucun flux officiel gratuit compatible vérifié"));
-        channels.add(new Channel("Toyor Al Janah | طيور الجنة", "Page de direct officielle trouvée ; compatibilité du lecteur à vérifier"));
-        channels.add(new Channel("Toyor Baby | طيور بيبي", "Aucun flux officiel gratuit compatible vérifié"));
-        channels.add(new Channel("Cartoon Network Arabic", "Direct linéaire gratuit non confirmé"));
-        channels.add(new Channel("Ajial | أجيال", "Aucun flux officiel gratuit compatible vérifié"));
-        channels.add(new Channel("Karameesh | كراميش", "Aucun flux officiel gratuit compatible vérifié"));
-        channels.add(new Channel("Rotana Kids | روتانا كيدز", "Direct officiel gratuit non confirmé"));
-        channels.add(new Channel("BabyBus Arabic", "Contenus officiels à la demande ; direct non confirmé"));
+        channels.add(new Channel("Majid | ماجد", "Direct gratuit non confirmé ; chaîne désactivée.", null));
+        channels.add(new Channel("Al Majd Kids | المجد للأطفال", "Aucun direct officiel gratuit vérifié.", null));
+        channels.add(new Channel("Baraem | براعم", "Aucun direct officiel gratuit vérifié.", null));
+        channels.add(new Channel("Jeem | جيم", "Aucun direct officiel gratuit vérifié.", null));
+        channels.add(new Channel("Toyor Al Janah | طيور الجنة", "Direct officiel YouTube. Ouverture dans YouTube ou le navigateur.", "https://www.youtube.com/@toyorlive/live"));
+        channels.add(new Channel("Toyor Baby | طيور بيبي", "Aucun direct linéaire officiel vérifié.", null));
+        channels.add(new Channel("Cartoon Network Arabic", "Aucun direct officiel gratuit vérifié.", null));
+        channels.add(new Channel("Ajial | أجيال", "Aucun direct officiel gratuit vérifié.", null));
+        channels.add(new Channel("Karameesh | كراميش", "Aucun direct officiel gratuit vérifié.", null));
+        channels.add(new Channel("Rotana Kids | روتانا كيدز", "Aucun direct officiel gratuit vérifié.", null));
+        channels.add(new Channel("BabyBus Arabic", "Contenus à la demande uniquement ; aucun direct vérifié.", null));
     }
 
     private void buildScreen() {
@@ -126,7 +129,7 @@ public class MainActivity extends Activity {
         right.addView(videoView, new LinearLayout.LayoutParams(-1, 0, 1f));
 
         status = new TextView(this);
-        status.setText("Choisis une chaîne. Les flux non vérifiés sont signalés et ne sont pas présentés comme opérationnels.");
+        status.setText("Sélectionne une chaîne. Toyor Al Janah dispose d’un accès au direct officiel ; les autres directs ne sont pas encore vérifiés.");
         status.setTextColor(Color.LTGRAY);
         status.setTextSize(17);
         status.setGravity(Gravity.CENTER);
@@ -136,8 +139,19 @@ public class MainActivity extends Activity {
         list.setOnItemClickListener((parent, view, position, id) -> {
             Channel channel = channels.get(position);
             videoView.stopPlayback();
-            status.setText(channel.name + "\n" + channel.note
-                    + "\n\nLecture non activée : aucun flux direct gratuit et compatible n'a encore été validé.");
+            if (channel.liveUrl == null) {
+                status.setText(channel.name + "\n\n" + channel.note
+                        + "\n\nCette chaîne ne démarre pas encore : aucun flux vidéo légal et compatible n'a été validé.");
+                return;
+            }
+            status.setText(channel.name + "\n\nOuverture du direct officiel dans YouTube ou le navigateur du téléviseur...");
+            try {
+                Intent playback = new Intent(Intent.ACTION_VIEW, Uri.parse(channel.liveUrl));
+                startActivity(playback);
+            } catch (Exception e) {
+                status.setText(channel.name + "\n\nImpossible d'ouvrir le lecteur YouTube sur ce téléviseur : " + e.getMessage());
+                Toast.makeText(MainActivity.this, "Aucune application compatible pour lire ce direct.", Toast.LENGTH_LONG).show();
+            }
         });
         setContentView(root);
         list.requestFocus();
