@@ -1,5 +1,15 @@
 buildscript {
-    repositories { google(); jcenter() }
+    repositories {
+        google()
+        maven { url 'https://repo.spring.io/libs-release' }
+        jcenter()
+    }
     dependencies { classpath 'com.android.tools.build:gradle:3.6.4' }
 }
-allprojects { repositories { google(); jcenter() } }
+allprojects {
+    repositories {
+        google()
+        maven { url 'https://repo.spring.io/libs-release' }
+        jcenter()
+    }
+}
