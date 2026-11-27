@@ -1,7 +1,8 @@
 buildscript {
     repositories {
         google()
-        maven { url 'https://repo.spring.io/libs-release' }
+        mavenCentral()
+        maven { url 'https://repo.spring.io/release' }
         jcenter()
     }
     dependencies { classpath 'com.android.tools.build:gradle:3.6.4' }
@@ -9,7 +10,8 @@ buildscript {
 allprojects {
     repositories {
         google()
-        maven { url 'https://repo.spring.io/libs-release' }
+        mavenCentral()
+        maven { url 'https://repo.spring.io/release' }
         jcenter()
     }
 }
