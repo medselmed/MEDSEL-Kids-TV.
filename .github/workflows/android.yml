@@ -11,29 +11,34 @@ jobs:
     steps:
       - name: Checkout source
         uses: actions/checkout@v4
+
       - name: Set up JDK 17 for Android SDK tools
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
+
       - name: Install Android SDK packages
-        uses: android-actions/setup-android@v3
-      - name: Accept Android SDK licenses
-        run: yes | sdkmanager --licenses >/dev/null || true
-      - name: Install Android platform and build tools
-        run: sdkmanager 'platform-tools' 'platforms;android-29' 'build-tools;29.0.3'
+        run: |
+          echo "ANDROID_HOME=$ANDROID_HOME"
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses >/dev/null || true
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --install "platform-tools" "platforms;android-29" "build-tools;29.0.3"
+
       - name: Set up JDK 8 for legacy Android Gradle Plugin
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '8'
+
       - name: Install Gradle 5.6.4
         run: |
           wget -q https://services.gradle.org/distributions/gradle-5.6.4-bin.zip -O /tmp/gradle.zip
           unzip -q /tmp/gradle.zip -d /tmp
           echo '/tmp/gradle-5.6.4/bin' >> "$GITHUB_PATH"
+
       - name: Build debug APK
         run: gradle --no-daemon assembleDebug
+
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
