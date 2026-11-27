@@ -2,6 +2,7 @@ package com.medsel.kidstv;
 
 import android.app.Activity;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.Gravity;
 import android.view.View;
@@ -11,25 +12,23 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import com.google.android.exoplayer2.ExoPlaybackException;
-import com.google.android.exoplayer2.ExoPlayerFactory;
-import com.google.android.exoplayer2.SimpleExoPlayer;
+import com.google.android.exoplayer2.ExoPlayer;
+import com.google.android.exoplayer2.MediaItem;
+import com.google.android.exoplayer2.PlaybackException;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.source.hls.HlsMediaSource;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
-import com.google.android.exoplayer2.ui.SimpleExoPlayerView;
-import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
-import com.google.android.exoplayer2.util.Util;
-
-import android.net.Uri;
+import com.google.android.exoplayer2.ui.PlayerView;
+import com.google.android.exoplayer2.upstream.DefaultDataSource;
+import com.google.android.exoplayer2.upstream.DefaultHttpDataSource;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class MainActivity extends Activity {
     private final List<Channel> channels = new ArrayList<Channel>();
-    private SimpleExoPlayer player;
-    private SimpleExoPlayerView playerView;
+    private ExoPlayer player;
+    private PlayerView playerView;
     private TextView status;
     private int selectedPosition = -1;
 
@@ -80,7 +79,7 @@ public class MainActivity extends Activity {
         root.addView(left, new LinearLayout.LayoutParams(0, -1, 0.38f));
 
         TextView title = new TextView(this);
-        title.setText("MEDSEL KIDS TV\nقنوات الأطفال العربية");
+        title.setText("MEDSEL KIDS TV\\nقنوات الأطفال العربية");
         title.setTextColor(Color.WHITE);
         title.setTextSize(23);
         title.setGravity(Gravity.CENTER);
@@ -108,7 +107,7 @@ public class MainActivity extends Activity {
         right.setBackgroundColor(Color.rgb(5, 9, 18));
         root.addView(right, new LinearLayout.LayoutParams(0, -1, 0.62f));
 
-        playerView = new SimpleExoPlayerView(this);
+        playerView = new PlayerView(this);
         playerView.setUseController(true);
         right.addView(playerView, new LinearLayout.LayoutParams(-1, 0, 1f));
 
@@ -127,15 +126,17 @@ public class MainActivity extends Activity {
 
     private void playChannel(int position) {
         selectedPosition = position;
-        Channel channel = channels.get(position);
+        final Channel channel = channels.get(position);
         status.setText("Connexion à " + channel.name + "…");
         releasePlayer();
 
-        DefaultTrackSelector trackSelector = new DefaultTrackSelector();
-        player = ExoPlayerFactory.newSimpleInstance(this, trackSelector);
+        DefaultTrackSelector trackSelector = new DefaultTrackSelector(this);
+        player = new ExoPlayer.Builder(this)
+                .setTrackSelector(trackSelector)
+                .build();
         playerView.setPlayer(player);
-        player.addListener(new Player.EventListener() {
-            @Override public void onPlayerStateChanged(boolean playWhenReady, int playbackState) {
+        player.addListener(new Player.Listener() {
+            @Override public void onPlaybackStateChanged(int playbackState) {
                 if (selectedPosition != position) return;
                 if (playbackState == Player.STATE_BUFFERING) {
                     status.setText("Chargement : " + channel.name);
@@ -146,19 +147,22 @@ public class MainActivity extends Activity {
                 }
             }
 
-            @Override public void onPlayerError(ExoPlaybackException error) {
+            @Override public void onPlayerError(PlaybackException error) {
                 if (selectedPosition == position) {
                     status.setText("Flux indisponible ou incompatible : " + channel.name
-                            + "\nEssaie une autre chaîne.");
+                            + "\\nEssaie une autre chaîne.");
                 }
             }
         });
 
-        DefaultDataSourceFactory dataSourceFactory = new DefaultDataSourceFactory(
-                this, Util.getUserAgent(this, "MEDSEL Kids TV"));
+        DefaultHttpDataSource.Factory httpFactory = new DefaultHttpDataSource.Factory()
+                .setUserAgent("MEDSEL Kids TV");
+        DefaultDataSource.Factory dataSourceFactory =
+                new DefaultDataSource.Factory(this, httpFactory);
         HlsMediaSource mediaSource = new HlsMediaSource.Factory(dataSourceFactory)
-                .createMediaSource(Uri.parse(channel.url));
-        player.prepare(mediaSource);
+                .createMediaSource(MediaItem.fromUri(Uri.parse(channel.url)));
+        player.setMediaSource(mediaSource);
+        player.prepare();
         player.setPlayWhenReady(true);
     }
 
