@@ -39,6 +39,7 @@ public class MainActivity extends Activity {
         channels.add(new Channel("Spacetoon | سبيستون", "Flux officiel gratuit à vérifier"));
         channels.add(new Channel("MBC 3 | إم بي سي 3", "Flux officiel gratuit à vérifier"));
         channels.add(new Channel("Majid | ماجد", "Flux officiel gratuit à vérifier"));
+        channels.add(new Channel("Al Majd Kids | المجد للأطفال", "Flux officiel gratuit à vérifier"));
         channels.add(new Channel("Baraem | براعم", "Flux officiel gratuit à vérifier"));
         channels.add(new Channel("Jeem | جيم", "Flux officiel gratuit à vérifier"));
         channels.add(new Channel("Toyor Al Janah | طيور الجنة", "Flux officiel gratuit à vérifier"));
