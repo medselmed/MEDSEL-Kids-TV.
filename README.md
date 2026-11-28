@@ -1,36 +1,44 @@
 # MEDSEL Kids TV
 
-Application Android TV pour Android 4.4 (API 19), sans dépendance à Google Play Services.
+Application Android TV de chaînes jeunesse arabes en direct (HLS), conçue pour un téléviseur
+**Iris sous Android 4.4.2 (API 19)**. Interface pilotée à la télécommande, sans écran tactile ni
+Google Play Services.
 
-## Version du projet
+## Fonctions
 
-- versionName : 0.2.0
-- versionCode : 2
-- Interface paysage pilotable à la télécommande.
-- Catalogue de chaînes arabes pour enfants.
-- Lecteur intégré ; aucun flux n'est déclaré opérationnel sans validation.
-- Vérification manuelle des mises à jour depuis le bouton de l'application.
-- Téléchargement d'un APK de GitHub Releases puis ouverture de l'installateur Android.
+- Liste en deux sections : chaînes **en direct** et chaînes **sans direct public** (grisées, avec explication).
+- Lecteur ExoPlayer 2.19.1 (HLS), reconnexion automatique (2 essais) puis **serveur de secours** si la chaîne en a un.
+- Reprise automatique de la dernière chaîne regardée.
+- Télécommande : `OK` lit la chaîne, un second `OK` passe en plein écran ; `CH+` / `CH−` (ou ▲ / ▼ en plein écran) changent de chaîne ; `RETOUR` revient à la liste.
+- Compatibilité Android 4.4 : TLS 1.1/1.2 activés pour HTTPS, MultiDex, icône et bannière du lanceur Leanback.
 
-## Chaînes et disponibilité
+## Catalogue
 
-Le catalogue contient Spacetoon, MBC 3, Majid, Al Majd Kids, Baraem, Jeem, Toyor Al Janah, Toyor Baby, Cartoon Network Arabic, Ajial, Karameesh, Rotana Kids et BabyBus Arabic.
+Règle : une URL n'est ajoutée que si elle est publiée par le diffuseur lui-même (son domaine ou son CDN).
+Les relais non autorisés ne sont pas acceptés.
 
-Ces noms ne signifient pas que les directs sont disponibles dans l'application. Les flux doivent être officiels, gratuits, accessibles depuis l'Algérie et compatibles avec Android 4.4 avant d'être activés. Les pages officielles peuvent exiger un abonnement, une application propriétaire ou un lecteur DRM non pris en charge par VideoView.
+| Chaîne | État |
+|---|---|
+| Spacetoon, Atfal & Mawaheb, Koogi TV, Roya Kids, Roya Kids Originals, Amou Yazid, SAT-7 Kids, God Stands Kids Arabic | Flux de direct déclaré |
+| Toyor Al Janah, Toyor Baby, MBC 3, Majid, Baraem, Jeem, Cartoon Network Arabic, Karameesh, Ajial, Al Majd Kids, Rotana Kids | Aucun flux public vérifié (non lisible) |
 
-## Publication des mises à jour
+Aucune URL n'a pu être testée depuis un serveur : **chaque flux doit être validé sur le téléviseur**
+(réseau algérien, Android 4.4.2). Un flux peut être géo-restreint ou changer d'adresse.
+L'appartenance de chaque chaîne à Nilesat n'est pas encodée dans l'application.
 
-L'application consulte la dernière GitHub Release et cherche un fichier APK joint. Le tag de publication doit être un numéro de versionCode simple : v3, v4, v5, etc. (la version installée actuelle est 2).
+Pour ajouter ou corriger une chaîne : modifier `app/src/main/java/com/medsel/kidstv/ChannelCatalog.java`.
 
-Le workflow `.github/workflows/release.yml` construit et publie une APK signée lorsqu'un tag `v*` est poussé. Avant de l'utiliser, configurer ces secrets dans Settings > Secrets and variables > Actions :
+## Limites connues sur Android 4.4
 
-- `ANDROID_KEYSTORE_BASE64` : keystore Android encodé en Base64.
-- `ANDROID_KEYSTORE_PASSWORD` : mot de passe du keystore.
-- `ANDROID_KEY_ALIAS` : alias de la clé.
-- `ANDROID_KEY_PASSWORD` : mot de passe de la clé.
+- TLS 1.2 est activé par `Tls12SocketFactory`, mais aucun certificat racine n'est ajouté : un serveur dont la
+  chaîne dépend d'une autorité absente d'Android 4.4 (ex. certificats Let's Encrypt récents) peut échouer.
+- Le flux Amou Yazid est en HTTP simple sur un serveur à DNS dynamique.
+- Les mises à jour intégrées ont été retirées au commit `00c8d3f` (récupérables depuis `98f11f1`).
+  L'installation d'une nouvelle version se fait à la main depuis les Releases GitHub.
 
-**La même clé de signature doit être conservée pour toutes les versions.** Ne jamais committer le keystore ni les mots de passe dans le dépôt. Android affiche encore sa confirmation système d'installation.
+## Compilation
 
-## Compilation de test
-
-Le workflow `Build Android APK` produit une APK debug comme artefact GitHub Actions. Une APK debug de CI n'est pas destinée à servir de clé de signature stable pour les mises à jour.
+- Prérequis : JDK 8, Android SDK (`platforms;android-31`, `build-tools;30.0.3`).
+- Debug : `gradle assembleDebug`. Le workflow `android.yml` le fait à chaque push et publie l'APK en artefact.
+- Release signée : pousser un tag `v*` ; le workflow `release.yml` signe l'APK (secrets `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD`) et le publie.
+- Ne jamais committer le keystore (`.gitignore` l'exclut).
